@@ -8,11 +8,15 @@
 
 ## 30 saniyede
 
-1. Soldan bir hikâye seç — **Aral Gölü'nün yok oluşu**, **Tuz Gölü kuruyor**, **2021 Manavgat yangınları**, **Larsen B buz rafının çöküşü**…
-2. Ortadaki beyaz çizgiyi sürükle: solda *önce*, sağda *sonra*.
-3. **📏 Değişimi ölç** — kesikli çerçevedeki su (veya yeşil) alanını iki tarih için km² olarak sayar: *Aral Gölü 2000: 20.300 km² → 2024: 11.584 km² (−43 %)*.
-4. **📍 Benim şehrim** — kendi şehrinin 2000'e karşı geçen yazını gör.
-5. **🔗 Paylaş** — görünüm, tarihler ve katman bağlantıda saklanır.
+1. Soldan bir hikâye seç — **Aral Gölü'nün yok oluşu**, **Tuz Gölü kuruyor**, **2021 Manavgat yangınları**, **Larsen B buz rafının çöküşü**… Kaydırıcı kendiliğinden soldan sağa süpürüp farkı gösterir.
+2. Alttaki **yıl çizelgesinde** iki tutamacı sürükle: sol = *önce* yılı, sağ = *sonra* yılı. Ekran anında o iki yılı karşılaştırır.
+3. **▶ Zaman akışı** — sağ taraf yıl yıl ilerler, ortada dev yıl sayacı: gölün yok oluşunu film gibi izle (boşluk tuşu da çalışır).
+4. Ortadaki beyaz çizgiyi sürükle (ya da ← →): solda *önce*, sağda *sonra*.
+5. **📏 Değişimi ölç** — kesikli çerçevedeki su (veya yeşil) alanını iki tarih için km² olarak sayar: *Aral Gölü 2000: 15.500 km² → 2013: 4.300 km² (−72 %)*. Sayılar sayarak gelir, çubuklar büyür.
+6. **📍 Benim şehrim** — kendi şehrinin 2000'e karşı geçen yazını gör. **🔗 Paylaş** — görünüm, yıllar ve katman bağlantıda saklanır.
+7. **📅 Gün ayarı** — bulut varsa günü bir iki gün kaydır.
+
+Hikâye kartlarının arka planı o yerin gerçek uydu görüntüsüdür; giriş ekranı 6 saniye sonra kendiliğinden kapanır.
 
 ## NASA verisi
 

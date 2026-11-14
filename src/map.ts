@@ -8,6 +8,8 @@ export interface SwipeMap {
   setDates(before: string, after: string): void;
   setSplit(frac: number): void;
   getSplit(): number;
+  /** İki katmanın da görünen döşemeleri yüklendiğinde (ya da zaman aşımında) çözülür. */
+  whenLoaded(timeoutMs?: number): Promise<void>;
 }
 
 /** İki NASA GIBS katmanını aynı haritada, dikey bir kaydırıcıyla ayırarak gösterir. */
@@ -101,7 +103,21 @@ export function createSwipeMap(mapEl: HTMLElement, swipeEl: HTMLElement, attribu
   swipeEl.addEventListener("pointerup", stop);
   swipeEl.addEventListener("pointercancel", stop);
 
-  return { map, setLayer, setDates, setSplit, getSplit: () => split };
+  function whenLoaded(timeoutMs = 3000): Promise<void> {
+    return new Promise((resolve) => {
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      let l = !left || !left.isLoading();
+      let r = !right || !right.isLoading();
+      const check = () => { if (l && r) finish(); };
+      left?.once("load", () => { l = true; check(); });
+      right?.once("load", () => { r = true; check(); });
+      setTimeout(check, 120); // yükleme hiç başlamadıysa hemen bitir
+      setTimeout(finish, timeoutMs);
+    });
+  }
+
+  return { map, setLayer, setDates, setSplit, getSplit: () => split, whenLoaded };
 }
 
 function tileUrlOf(l: L.TileLayer): string {

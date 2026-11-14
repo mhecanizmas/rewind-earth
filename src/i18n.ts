@@ -22,6 +22,16 @@ const D: Record<string, { tr: string; en: string }> = {
   located: { tr: "Senin şehrin: 2000'e karşı geçen yaz", en: "Your city: 2000 vs last summer" },
   nolocate: { tr: "Konum alınamadı.", en: "Could not get location." },
   layer: { tr: "Katman", en: "Layer" },
+  play: { tr: "Zaman akışı", en: "Time-lapse" },
+  playing: { tr: "yıl yıl ilerliyor — durdurmak için tıkla", en: "advancing year by year — click to stop" },
+  fine: { tr: "Gün ayarı", en: "Fine-tune" },
+  introline: { tr: "2000'den bugüne, her gün, tüm gezegen.", en: "Every day since 2000, the whole planet." },
+  intro1: { tr: "İki yıl seç", en: "Pick two years" },
+  intro2: { tr: "Çizgiyi kaydır", en: "Drag the line" },
+  intro3: { tr: "Değişimi ölç", en: "Measure the change" },
+  start: { tr: "Başla", en: "Start" },
+  keys: { tr: "← → kaydırıcı · boşluk: zaman akışı · Esc: kapat", en: "← → swipe · space: time-lapse · Esc: close" },
+  reveal: { tr: "fark ortaya çıkıyor…", en: "revealing the change…" },
   attribution: { tr: "Görüntü: NASA GIBS / Worldview · Terra MODIS, Suomi NPP VIIRS", en: "Imagery: NASA GIBS / Worldview · Terra MODIS, Suomi NPP VIIRS" },
 };
 
