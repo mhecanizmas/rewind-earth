@@ -1,12 +1,14 @@
 import * as THREE from "three";
 import { getLang } from "../i18n";
 import { byKind, MISSIONS, missionById, partById, type Mission, type Part } from "./parts";
-import { budgets, buildSatellite, orbitStats, type Budgets, type Selection, type SatelliteModel } from "./satellite";
+import { budgets, buildSatellite, dimensions, orbitStats, type Budgets, type Selection, type SatelliteModel } from "./satellite";
 import { createScene3D, latLngToVec3, R_EARTH, type Scene3D } from "./scene3d";
 
 type TR = { tr: string; en: string };
 const L = (v: TR) => v[getLang()];
 const n0 = (v: number) => Math.round(v).toLocaleString(getLang() === "tr" ? "tr-TR" : "en-US");
+const n2 = (v: number) =>
+  v.toLocaleString(getLang() === "tr" ? "tr-TR" : "en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const n1 = (v: number) => v.toLocaleString(getLang() === "tr" ? "tr-TR" : "en-US", { maximumFractionDigits: 1 });
 
 export type Phase = "brief" | "build" | "orbit" | "launch" | "result";
@@ -267,11 +269,22 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
     if (p.powerW > 0) spec.push(`⚡ +${p.powerW} W`);
     else if (p.powerW < 0) spec.push(`⚡ ${p.powerW} W`);
     spec.push(`⚖ ${p.massKg} kg`, `💰 ${p.costM} M$`);
+    if (p.opticsLengthM) spec.push(`🔭 ${n1(p.opticsLengthM)} m ${L({ tr: "tüp", en: "tube" })}`, `⌀ ${n2(p.apertureM ?? 0)} m ${L({ tr: "ayna", en: "mirror" })}`);
+    if (p.areaM2) spec.push(`▭ ${p.areaM2} m²`);
+    if (p.dishM) spec.push(`⌀ ${n1(p.dishM)} m`);
     void b;
+    // seçili kart açılır: hangi teknoloji ve parça neden bu boyutta
+    const detail = on
+      ? `<div class="g-why">
+           <div><i>⚙</i><span>${L({ tr: p.techTr, en: p.techEn })}</span></div>
+           <div><i>📐</i><span>${L({ tr: p.whyTr, en: p.whyEn })}</span></div>
+         </div>`
+      : "";
     return `<button class="g-part ${on ? "on" : ""}" data-id="${p.id}">
       <b>${L({ tr: p.nameTr, en: p.nameEn })}</b>
       <p>${L({ tr: p.descTr, en: p.descEn })}</p>
       <div class="g-spec">${spec.map((s) => `<span>${s}</span>`).join("")}</div>
+      ${detail}
       <em>${p.heritage}</em>
     </button>`;
   }
@@ -315,6 +328,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
     const b = budgets(sel, altitudeKm);
     const cam = partById(sel.camera);
     const o = orbitStats(altitudeKm, cam.swathKm ?? 200);
+    const d = dimensions(sel);
     const powStat = b.genW < b.loadW ? "bad" : b.marginPct < 25 ? "warn" : "ok";
     const costStat = b.costM > mission.budgetM ? "bad" : b.costM > mission.budgetM * 0.92 ? "warn" : "ok";
     const dataStat = b.dataOk < 0.4 ? "bad" : b.dataOk < 0.85 ? "warn" : "ok";
@@ -332,9 +346,20 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
           <b>${cam.resolutionM} m</b> <small>(≤ ${mission.needResolutionM} m)</small></div>
         <div class="g-check ${revOk ? "ok" : "bad"}">${revOk ? "✔" : "✖"} ${L({ tr: "Ziyaret sıklığı", en: "Revisit" })}
           <b>${o.revisitDays} ${L({ tr: "gün", en: "d" })}</b> <small>(≤ ${mission.needRevisitDays})</small></div>
+        <h4>${L({ tr: "Aracın ölçüleri", en: "Spacecraft size" })}</h4>
+        <div class="g-dims">
+          <div><span>${L({ tr: "Kanat açıklığı", en: "Wing span" })}</span><b>${n1(d.spanM)} m</b></div>
+          <div><span>${L({ tr: "Boy", en: "Length" })}</span><b>${n1(d.lengthM)} m</b></div>
+          <div><span>${L({ tr: "Teleskop", en: "Telescope" })}</span><b>${n1(d.opticsM)} m</b></div>
+          <div><span>${L({ tr: "Ana ayna", en: "Primary mirror" })}</span><b>${n2(d.apertureM)} m</b></div>
+        </div>
         <div class="g-note">${L({
           tr: "Keskin kamera dar bakar: aynı yere daha seyrek uğrarsın. Geniş kamera her gün bakar ama ayrıntıyı kaçırır.",
           en: "A sharp camera looks narrow: you revisit less often. A wide camera looks daily but misses detail.",
+        })}</div>
+        <div class="g-note small">${L({
+          tr: "3B model şematiktir; yukarıdaki ölçüler gerçek tasarımından gelir.",
+          en: "The 3D model is schematic; the sizes above come from your actual design.",
         })}</div>
       </div>`;
   }

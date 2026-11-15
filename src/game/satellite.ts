@@ -97,7 +97,7 @@ export function buildSatellite(sel: Selection): SatelliteModel {
   }));
 
   /* --- gövde: kamera büyüdükçe platform büyür --- */
-  const bodyScale = cam.id === "cam-sharp" ? 1.35 : cam.id === "cam-mid" ? 1.12 : 1;
+  const bodyScale = cam.id === "cam-sharp" ? 1.3 : cam.id === "cam-mid" ? 1.12 : 1;
   const bw = 1.7 * bodyScale, bh = 1.45 * bodyScale, bd = 1.9 * bodyScale;
   const body = new THREE.Mesh(keep(new THREE.BoxGeometry(bw, bh, bd)), matFoil);
   group.add(body);
@@ -115,8 +115,10 @@ export function buildSatellite(sel: Selection): SatelliteModel {
   group.add(edge);
 
   /* --- kamera teleskobu: nadire (−Y) bakar; keskin kamera = uzun tüp --- */
-  const barrelLen = cam.resolutionM === 1 ? 2.3 : cam.resolutionM === 30 ? 1.5 : 0.85;
-  const barrelR = cam.resolutionM === 1 ? 0.52 : cam.resolutionM === 30 ? 0.42 : 0.3;
+  // Boyutlar parçanın gerçek ölçülerinden türer; abartmamak için yumuşak sıkıştırma
+  // uygulanır (tam ölçekte geniş açı kamerası görünmez kalırdı).
+  const barrelLen = 0.5 + (cam.opticsLengthM ?? 1) * 0.45;
+  const barrelR = 0.22 + (cam.apertureM ?? 0.2) * 0.3;
   const barrel = new THREE.Mesh(keep(new THREE.CylinderGeometry(barrelR, barrelR * 1.08, barrelLen, 28)), matDark);
   barrel.position.y = -bh / 2 - barrelLen / 2;
   group.add(barrel);
@@ -146,8 +148,8 @@ export function buildSatellite(sel: Selection): SatelliteModel {
   group.add(scan);
 
   /* --- güneş kanatları --- */
-  const panelCount = pow.id === "pow-l" ? 3 : pow.id === "pow-m" ? 2 : 1;
-  const panelW = 1.5, panelH = 0.95;
+  const panelCount = pow.panels ?? 1;
+  const panelW = 1.22 + (pow.areaM2 ?? 4) * 0.022, panelH = 0.95;
   const solarTex = keep(solarTexture());
   const matSolar = keep(new THREE.MeshStandardMaterial({
     map: solarTex, metalness: 0.55, roughness: 0.22,
@@ -176,7 +178,7 @@ export function buildSatellite(sel: Selection): SatelliteModel {
   (solarTex as THREE.Texture).repeat.set(panelCount * 1.6, 1);
 
   /* --- anten --- */
-  const dishR = ant.id === "ant-ka" ? 0.72 : ant.id === "ant-x" ? 0.52 : 0.2;
+  const dishR = 0.16 + (ant.dishM ?? 0.3) * 0.42;
   const antGroup = new THREE.Group();
   const mast = new THREE.Mesh(keep(new THREE.CylinderGeometry(0.05, 0.05, 0.6, 10)), matWhite);
   mast.position.y = 0.3;
@@ -310,4 +312,20 @@ export function orbitStats(altitudeKm: number, swathKm: number) {
   // sürüklenme ömrü: 400 km'de ~2 yıl, 800 km'de ~onlarca yıl
   const lifetimeYears = Math.round(Math.pow(Math.max(altitudeKm - 330, 20) / 70, 2.1) * 10) / 10;
   return { periodMin, orbitsPerDay, revisitDays, lifetimeYears };
+}
+
+/** Seçime göre yaklaşık gerçek ölçüler (metre) — 3B model şematiktir, bunlar gerçek. */
+export function dimensions(sel: Selection) {
+  const cam = partById(sel.camera);
+  const pow = partById(sel.power);
+  const busM = cam.resolutionM === 1 ? 2.6 : cam.resolutionM === 30 ? 2.3 : 2.0;
+  const panels = pow.panels ?? 1;
+  const panelLenM = (pow.areaM2 ?? 4) / panels / 2.0;
+  return {
+    busM,
+    spanM: busM + 2 * panels * panelLenM,
+    lengthM: busM + (cam.opticsLengthM ?? 0.9),
+    apertureM: cam.apertureM ?? 0.18,
+    opticsM: cam.opticsLengthM ?? 0.9,
+  };
 }

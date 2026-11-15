@@ -33,6 +33,18 @@ const D: Record<string, { tr: string; en: string }> = {
   keys: { tr: "← → kaydırıcı · boşluk: zaman akışı · Esc: kapat", en: "← → swipe · space: time-lapse · Esc: close" },
   reveal: { tr: "fark ortaya çıkıyor…", en: "revealing the change…" },
 
+  // veri boşluğu
+  nodataTitle: { tr: "bu tarihte bu bölgede kayıt yok", en: "no imagery here on this date" },
+  nodataWhy: {
+    tr: "Uydu şeridi buradan geçmemiş ya da kutup gecesi",
+    en: "The satellite swath missed this spot, or it was polar night",
+  },
+  nodataCover: { tr: "kaplama", en: "covered" },
+  nodataJump: { tr: "En yakın kayıtlı güne atla", en: "Jump to nearest day with data" },
+  nodataSearching: { tr: "aranıyor…", en: "searching…" },
+  nodataNone: { tr: "8 gün içinde kayıt yok", en: "nothing within 8 days" },
+  nodataJumped: { tr: "Kayıt bulunan güne geçildi", en: "Moved to a day with imagery" },
+
   // kabuk / hub
   modeGame: { tr: "Uydunu Kur", en: "Build a Satellite" },
   modeAtlas: { tr: "Dünya Atlası", en: "Earth Atlas" },

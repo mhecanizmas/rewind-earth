@@ -4,6 +4,8 @@ export interface Timeline {
   setRange(min: number, max: number): void;
   onChange(cb: (before: number, after: number, side: "l" | "r") => void): void;
   highlight(year: number | null): void; // zaman akışı sırasında parlayan yıl
+  /** Görüntüsü bulunmayan yıllar çizelgede kırmızı işaretlenir */
+  setEmptyYears(years: Set<number>): void;
 }
 
 export function createTimeline(root: HTMLElement, minYear: number, maxYear: number): Timeline {
@@ -36,18 +38,28 @@ export function createTimeline(root: HTMLElement, minYear: number, maxYear: numb
       // uç etiketler komşu 5'lik etiketle çakışmasın
       const edge = (y === min && min % 5 !== 0 && (min % 5 >= 4 || min % 5 <= 1 ? false : true)) || (y === max && max - lastFive >= 2);
       const major = y % 5 === 0 || edge;
-      parts.push(`<i class="${major ? "major" : ""}" style="left:${pct(y)}%">${major ? `<b>${y}</b>` : ""}</i>`);
+      parts.push(`<i class="${major ? "major" : ""}" data-y="${y}" style="left:${pct(y)}%">${major ? `<b>${y}</b>` : ""}</i>`);
     }
     ticks.innerHTML = parts.join("");
   }
 
+  let lastB = -1, lastA = -1;
   function render() {
+    if (before !== lastB) { lastB = before; pop(hl); }
+    if (after !== lastA) { lastA = after; pop(hr); }
     hl.style.left = `${pct(before)}%`;
     hr.style.left = `${pct(after)}%`;
     hl.querySelector("span")!.textContent = String(before);
     hr.querySelector("span")!.textContent = String(after);
     range.style.left = `${pct(Math.min(before, after))}%`;
     range.style.width = `${Math.abs(pct(after) - pct(before))}%`;
+  }
+
+  /** Yıl değişince tutamaç ve etiketi kısa bir zıplamayla vurgular. */
+  function pop(h: HTMLElement) {
+    h.classList.remove('pop');
+    void h.offsetWidth;
+    h.classList.add('pop');
   }
 
   function yearFromX(clientX: number) {
@@ -124,6 +136,10 @@ export function createTimeline(root: HTMLElement, minYear: number, maxYear: numb
       if (y === null) { glow.style.opacity = "0"; return; }
       glow.style.opacity = "1";
       glow.style.left = `${pct(y)}%`;
+    },
+    setEmptyYears(years) {
+      ticks.querySelectorAll<HTMLElement>("i").forEach((t) =>
+        t.classList.toggle("empty", years.has(Number(t.dataset.y))));
     },
   };
 }

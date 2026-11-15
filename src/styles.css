@@ -292,3 +292,56 @@ body.revealing #handle { animation: handleglow 1.2s ease-in-out infinite; }
   #top-actions button { padding: 6px 10px; }
   #eyebadge { left: auto; right: 10px; transform: none; top: 52px; padding: 6px 11px; }
 }
+
+/* ---------- "bu tarihte kayıt yok" uyarısı ---------- */
+#nodata {
+  /* üstte açıklama kutusu, solda hikâye paneli var: orta-alt boşluğa yerleş */
+  position: fixed; left: 50%; bottom: 152px; transform: translateX(-50%); z-index: 458;
+  width: min(560px, calc(100vw - 24px)); display: flex; flex-direction: column; gap: 6px;
+}
+#nodata.show { animation: ndin 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes ndin { from { opacity: 0; transform: translate(-50%, -10px); } }
+.nd-row {
+  display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center;
+  background: rgba(40, 18, 14, 0.92); border: 1px solid rgba(255, 140, 90, 0.5);
+  border-radius: 12px; padding: 9px 12px; backdrop-filter: blur(10px);
+}
+.nd-side { font-size: 10px; letter-spacing: 0.1em; font-weight: 800; padding: 3px 8px; border-radius: 999px; }
+.nd-side.l { background: rgba(255, 210, 122, 0.18); color: #ffd27a; }
+.nd-side.r { background: rgba(138, 208, 255, 0.18); color: #8ad0ff; }
+.nd-txt b { display: block; font-size: 12.5px; }
+.nd-txt small { color: #c9a99a; font-size: 11px; }
+.nd-jump {
+  background: #ff8a5b; color: #2a1000; border: none; border-radius: 9px;
+  padding: 8px 12px; font-weight: 700; font-size: 12px; white-space: nowrap;
+}
+.nd-jump:hover { background: #ffa178; }
+.nd-jump:disabled { opacity: 0.65; }
+
+/* ---------- yıl çizelgesi: canlandırmalar ---------- */
+.tl-handle.pop { animation: tlpop 0.42s cubic-bezier(0.2, 1.4, 0.4, 1); }
+@keyframes tlpop {
+  40% { transform: translateY(-50%) scale(1.42); box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.12), 0 2px 10px rgba(0, 0, 0, 0.5); }
+}
+.tl-handle.pop span { animation: tllabel 0.42s cubic-bezier(0.2, 1.2, 0.4, 1); }
+@keyframes tllabel { 0% { transform: translateX(-50%) translateY(5px) scale(0.84); opacity: 0.4; } }
+.tl-range {
+  background: linear-gradient(90deg, #ffd27a, #8ad0ff, #ffd27a);
+  background-size: 220% 100%;
+  animation: tlflow 7s linear infinite;
+}
+@keyframes tlflow { to { background-position: -220% 0; } }
+.tl-track:hover .tl-range { animation-duration: 2.2s; }
+.tl-ticks i { transition: background 0.25s, height 0.25s; }
+.tl-ticks i.empty { background: #ff6b6b; height: 9px; }
+.tl-ticks i.empty::after {
+  content: ""; position: absolute; left: -2px; top: -4px; width: 5px; height: 5px;
+  border-radius: 50%; background: #ff6b6b; box-shadow: 0 0 7px #ff6b6b;
+}
+.tl-handle:active { cursor: grabbing; }
+
+@media (max-width: 560px) {
+  #nodata { top: 96px; bottom: auto; width: calc(100vw - 20px); }
+  .nd-row { grid-template-columns: auto 1fr; row-gap: 7px; }
+  .nd-jump { grid-column: 1 / -1; }
+}

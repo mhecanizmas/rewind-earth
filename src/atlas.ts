@@ -1,7 +1,8 @@
 /** Dünya Atlası — NASA GIBS önce/sonra kaydırıcısı, yıl çizelgesi ve değişim ölçer. */
 import L from "leaflet";
 import { cancelTween, countUp, retrigger, tween } from "./anim";
-import { clampDate, LAYERS, layerById, shiftDate, todayISO, type GibsLayer } from "./gibs";
+import { clampDate, LAYERS, layerById, shiftDate, snapToCadence, todayISO, type GibsLayer } from "./gibs";
+import { findNearestWithData, probeCoverage } from "./coverage";
 import { fmtDate, fmtN, getLang, t } from "./i18n";
 import { createSwipeMap } from "./map";
 import { measureArea } from "./measure";
@@ -54,7 +55,7 @@ function writeHash() {
   if (S.story) p.set("s", S.story);
   history.replaceState(null, "", "#" + p.toString());
 }
-sm.map.on("moveend", writeHash);
+sm.map.on("moveend", () => { writeHash(); scheduleProbe(1200); });
 
 const dateL = $<HTMLInputElement>("date-l");
 const dateR = $<HTMLInputElement>("date-r");
@@ -94,8 +95,9 @@ function renderDates() {
 }
 
 function applyDates(before: string, after: string) {
-  const nb = clampDate(before, S.layer);
-  const na = clampDate(after, S.layer);
+  // 8 günlük ürünlerde aradaki günler boş gelir: geçerli döneme oturt
+  const nb = snapToCadence(clampDate(before, S.layer), S.layer);
+  const na = snapToCadence(clampDate(after, S.layer), S.layer);
   if (nb !== S.before) retrigger(badgeL, "bump");
   if (na !== S.after) retrigger(badgeR, "bump");
   S.before = nb;
@@ -104,6 +106,7 @@ function applyDates(before: string, after: string) {
   renderDates();
   result.classList.add("hidden");
   writeHash();
+  scheduleProbe();
 }
 
 dateL.addEventListener("change", () => applyDates(dateL.value || S.before, S.after));
@@ -136,7 +139,9 @@ layerSel.addEventListener("change", () => {
   renderDates();
   renderLayerSelect();
   result.classList.add("hidden");
+  emptyYears.clear();
   writeHash();
+  scheduleProbe();
 });
 
 /* ---------- hikâyeler ---------- */
@@ -285,6 +290,69 @@ function stopPlay() {
 }
 btnPlay.addEventListener("click", () => (playing ? stopPlay() : void startPlay()));
 
+/* ---------- bu tarihte kayıt var mı? ---------- */
+const nodata = $("nodata");
+const emptyYears = new Set<number>();
+let probeTimer: number | null = null;
+let probeRun = 0;
+
+function scheduleProbe(delay = 700) {
+  if (probeTimer) clearTimeout(probeTimer);
+  probeTimer = window.setTimeout(() => void runProbe(), delay);
+}
+
+async function runProbe() {
+  const run = ++probeRun;
+  const bounds = sm.map.getBounds();
+  const zoom = sm.map.getZoom();
+  const [ca, cb] = await Promise.all([
+    probeCoverage(S.layer, S.before, bounds, zoom),
+    probeCoverage(S.layer, S.after, bounds, zoom),
+  ]);
+  if (run !== probeRun) return;
+
+  for (const [iso, cov] of [[S.before, ca], [S.after, cb]] as const) {
+    if (!cov.checked) continue;
+    if (cov.ok) emptyYears.delete(yearOf(iso));
+    else emptyYears.add(yearOf(iso));
+  }
+  tl.setEmptyYears(emptyYears);
+
+  const bad = ([["l", S.before, ca], ["r", S.after, cb]] as const).filter(([, , c]) => c.checked && !c.ok);
+  if (bad.length === 0) { nodata.classList.add("hidden"); return; }
+
+  nodata.innerHTML = bad.map(([side, iso, c]) => `
+    <div class="nd-row" data-side="${side}">
+      <span class="nd-side ${side}">${t(side === "l" ? "before" : "after")}</span>
+      <div class="nd-txt">
+        <b>${fmtDate(iso)} — ${t("nodataTitle")}</b>
+        <small>${t("nodataWhy")} · ${Math.round(c.dataFraction * 100)}% ${t("nodataCover")}</small>
+      </div>
+      <button class="nd-jump" data-side="${side}" data-iso="${iso}">${t("nodataJump")}</button>
+    </div>`).join("");
+  nodata.classList.remove("hidden");
+  retrigger(nodata, "show");
+  nodata.querySelectorAll<HTMLButtonElement>(".nd-jump").forEach((b) =>
+    b.addEventListener("click", () => void jumpToData(b.dataset.side as "l" | "r", b)));
+}
+
+async function jumpToData(side: "l" | "r", btn: HTMLButtonElement) {
+  btn.disabled = true;
+  btn.textContent = t("nodataSearching");
+  const iso = side === "l" ? S.before : S.after;
+  const found = await findNearestWithData(
+    S.layer, iso, sm.map.getBounds(), sm.map.getZoom(),
+    shiftDate, (x) => clampDate(x, S.layer),
+  );
+  if (!found) {
+    btn.textContent = t("nodataNone");
+    return;
+  }
+  if (side === "l") applyDates(found, S.after);
+  else applyDates(S.before, found);
+  showToast(t("nodataJumped"));
+}
+
 /* ---------- ölçüm ---------- */
 $("btn-measure").addEventListener("click", async () => {
   const kind = S.layer.measure;
@@ -392,6 +460,7 @@ export function atlasShow(reveal = true) {
   renderStories();
   requestAnimationFrame(() => {
     sm.map.invalidateSize();
+    scheduleProbe(900);
     if (!shown) {
       shown = true;
       const s = STORIES.find((x) => x.id === S.story);

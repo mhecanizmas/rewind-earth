@@ -230,3 +230,16 @@
   .g-rbtns button { flex: 1 1 100%; }
   .g-orbit h2 { font-size: 32px; }
 }
+
+/* seçili parçada: hangi teknoloji + neden bu boyutta */
+.g-why { margin: 7px 0 2px; display: flex; flex-direction: column; gap: 5px;
+  border-top: 1px dashed rgba(255,255,255,0.14); padding-top: 7px; animation: whyopen 0.35s ease-out; }
+.g-why div { display: grid; grid-template-columns: 16px 1fr; gap: 6px; font-size: 11.5px; line-height: 1.45; color: #c6d0e2; }
+.g-why i { font-style: normal; opacity: 0.85; }
+.g-why div:last-child span { color: #ffd27a; }
+@keyframes whyopen { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 160px; } }
+.g-dims { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.g-dims div { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09); border-radius: 8px; padding: 6px 8px; }
+.g-dims span { display: block; font-size: 10.5px; color: #8b97b3; }
+.g-dims b { font-variant-numeric: tabular-nums; font-size: 14px; }
+.g-note.small { font-size: 10.5px; border-left-color: rgba(255,255,255,0.2); color: #78839a; }

@@ -13,6 +13,8 @@ export interface GibsLayer {
   descTr: string;
   descEn: string;
   measure?: "water" | "green" | null;
+  /** Ürün yalnızca bu gün aralıklarıyla yayımlanıyorsa (ör. 8 günlük NDVI) */
+  cadenceDays?: number;
 }
 
 export const LAYERS: GibsLayer[] = [
@@ -51,6 +53,7 @@ export const LAYERS: GibsLayer[] = [
     descTr: "8 günlük bitki sağlığı indeksi: koyu yeşil = gür bitki, kahverengi = çıplak toprak.",
     descEn: "8-day vegetation index: dark green = lush, brown = bare ground.",
     measure: "green",
+    cadenceDays: 8,
   },
   {
     id: "MODIS_Terra_Land_Surface_Temp_Day",
@@ -103,4 +106,17 @@ export function clampDate(iso: string, layer: GibsLayer): string {
   if (iso < layer.minDate) return layer.minDate;
   const t = todayISO();
   return iso > t ? t : iso;
+}
+
+/**
+ * 8 günlük ürünler yılın 1., 9., 17. … günlerinde yayımlanır. Aradaki bir gün
+ * seçilirse GIBS boş döşeme döndürür; bu yüzden tarihi geçerli döneme oturturuz.
+ */
+export function snapToCadence(iso: string, layer: GibsLayer): string {
+  if (!layer.cadenceDays) return iso;
+  const d = new Date(iso + "T00:00:00Z");
+  const start = Date.UTC(d.getUTCFullYear(), 0, 1);
+  const doy = Math.floor((d.getTime() - start) / 86400000);
+  const snapped = Math.floor(doy / layer.cadenceDays) * layer.cadenceDays;
+  return new Date(start + snapped * 86400000).toISOString().slice(0, 10);
 }
