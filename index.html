@@ -3,88 +3,113 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Rewind Earth — NASA uydu arşiviyle Dünya'nın nasıl değiştiğini iki yıl arasında kaydırıcıyla gör, zaman akışında izle ve ölç. 2000'den bugüne, her gün, tüm gezegen." />
+    <meta name="description" content="Rewind Earth — NASA verisiyle kendi Dünya gözlem uydunu tasarla, fırlat ve onun gözüyle gezegenin 25 yıllık değişimini izle." />
     <meta name="theme-color" content="#06090f" />
     <title>Rewind Earth</title>
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232e7bff'/%3E%3Cpath d='M16 2v28' stroke='%23fff' stroke-width='3'/%3E%3Cpath d='M2 16a14 14 0 0 1 14-14v28A14 14 0 0 1 2 16z' fill='%23c98a3a'/%3E%3C/svg%3E" />
   </head>
   <body>
-    <div id="map"></div>
-    <div id="swipe"><div id="handle">⇆</div></div>
-    <div id="frame"><span data-t="framelabel"></span></div>
-    <div id="badge-l" class="badge"></div>
-    <div id="badge-r" class="badge"></div>
-    <div id="yearflash"></div>
+    <!-- ============ OYUN ============ -->
+    <div id="game-root" class="mode"></div>
 
-    <header id="top">
-      <div id="brand">
-        <b>REWIND EARTH</b>
-        <span data-t="tagline"></span>
-      </div>
-      <div id="top-actions">
-        <button id="btn-locate" title="Konumum">📍 <span data-t="myplace"></span></button>
-        <button id="btn-share">🔗 <span data-t="share"></span></button>
-        <button id="btn-lang">EN</button>
-      </div>
-    </header>
+    <!-- ============ ATLAS (Rewind Earth) ============ -->
+    <div id="atlas" class="mode">
+      <div id="map"></div>
+      <div id="swipe"><div id="handle">⇆</div></div>
+      <div id="frame"><span data-t="framelabel"></span></div>
+      <div id="badge-l" class="badge"></div>
+      <div id="badge-r" class="badge"></div>
+      <div id="yearflash"></div>
 
-    <aside id="panel">
-      <button id="panel-toggle" aria-label="toggle">☰</button>
-      <div id="panel-body">
-        <h3 data-t="stories"></h3>
-        <div id="story-list"></div>
-        <p class="hint" data-t="freehint"></p>
-        <p class="hint keys" data-t="keys"></p>
-      </div>
-    </aside>
+      <header id="top">
+        <div id="brand">
+          <b>REWIND EARTH</b>
+          <span data-t="tagline"></span>
+        </div>
+        <div id="top-actions">
+          <button id="btn-locate">📍 <span data-t="myplace"></span></button>
+          <button id="btn-share">🔗 <span data-t="share"></span></button>
+        </div>
+      </header>
 
-    <div id="caption" class="hidden">
-      <button id="caption-close">✕</button>
-      <h2 id="caption-title"></h2>
-      <p id="caption-text"></p>
-      <small id="caption-src"></small>
+      <aside id="panel">
+        <button id="panel-toggle" aria-label="toggle">☰</button>
+        <div id="panel-body">
+          <h3 data-t="stories"></h3>
+          <div id="story-list"></div>
+          <p class="hint" data-t="freehint"></p>
+          <p class="hint keys" data-t="keys"></p>
+        </div>
+      </aside>
+
+      <div id="caption" class="hidden">
+        <button id="caption-close">✕</button>
+        <h2 id="caption-title"></h2>
+        <p id="caption-text"></p>
+        <small id="caption-src"></small>
+      </div>
+
+      <div id="eyebadge" class="hidden"></div>
+
+      <footer id="bar">
+        <div id="tl-row">
+          <button id="btn-play" title="Zaman akışı">▶</button>
+          <div id="timeline"></div>
+        </div>
+        <div id="ctl-row">
+          <select id="layer"></select>
+          <button id="btn-fine">📅 <span data-t="fine"></span></button>
+          <button id="btn-measure">📏 <span data-t="measure"></span></button>
+        </div>
+        <div id="fine" class="hidden">
+          <div class="datebox">
+            <span class="lbl" data-t="before"></span>
+            <button class="step" data-side="l" data-d="-1">◀</button>
+            <input type="date" id="date-l" />
+            <button class="step" data-side="l" data-d="1">▶</button>
+          </div>
+          <div class="datebox">
+            <span class="lbl" data-t="after"></span>
+            <button class="step" data-side="r" data-d="-1">◀</button>
+            <input type="date" id="date-r" />
+            <button class="step" data-side="r" data-d="1">▶</button>
+          </div>
+        </div>
+        <div id="result" class="hidden"></div>
+      </footer>
+
+      <div id="toast" class="hidden"></div>
     </div>
 
-    <footer id="bar">
-      <div id="tl-row">
-        <button id="btn-play" title="Zaman akışı">▶</button>
-        <div id="timeline"></div>
-      </div>
-      <div id="ctl-row">
-        <select id="layer"></select>
-        <button id="btn-fine">📅 <span data-t="fine"></span></button>
-        <button id="btn-measure">📏 <span data-t="measure"></span></button>
-      </div>
-      <div id="fine" class="hidden">
-        <div class="datebox">
-          <span class="lbl" data-t="before"></span>
-          <button class="step" data-side="l" data-d="-1">◀</button>
-          <input type="date" id="date-l" />
-          <button class="step" data-side="l" data-d="1">▶</button>
-        </div>
-        <div class="datebox">
-          <span class="lbl" data-t="after"></span>
-          <button class="step" data-side="r" data-d="-1">◀</button>
-          <input type="date" id="date-r" />
-          <button class="step" data-side="r" data-d="1">▶</button>
-        </div>
-      </div>
-      <div id="result" class="hidden"></div>
-    </footer>
+    <!-- ============ ÜST ÇUBUK (mod geçişi) ============ -->
+    <nav id="switch" class="hidden">
+      <button id="sw-home" title="Ana ekran">⌂</button>
+      <button id="sw-game" data-mode="game">🛰 <span data-t="modeGame"></span></button>
+      <button id="sw-atlas" data-mode="atlas">🌍 <span data-t="modeAtlas"></span></button>
+      <button id="btn-lang">EN</button>
+    </nav>
 
-    <div id="toast" class="hidden"></div>
-
-    <div id="intro">
-      <div class="globe"><i></i><i></i><i></i></div>
+    <!-- ============ HUB (giriş) ============ -->
+    <div id="hub">
+      <div class="hub-globe"><i></i><i></i><i></i></div>
       <h1>REWIND<span>EARTH</span></h1>
-      <p data-t="introline"></p>
-      <div class="chips">
-        <span>📅 <b data-t="intro1"></b></span>
-        <span>⇆ <b data-t="intro2"></b></span>
-        <span>📏 <b data-t="intro3"></b></span>
+      <p data-t="hubline"></p>
+      <div class="hub-cards">
+        <button class="hub-card" data-go="game">
+          <span class="hc-em">🛰</span>
+          <b data-t="hubGameT"></b>
+          <p data-t="hubGameD"></p>
+          <em data-t="hubGameTag"></em>
+        </button>
+        <button class="hub-card" data-go="atlas">
+          <span class="hc-em">🌍</span>
+          <b data-t="hubAtlasT"></b>
+          <p data-t="hubAtlasD"></p>
+          <em data-t="hubAtlasTag"></em>
+        </button>
       </div>
-      <button id="btn-start" data-t="start"></button>
-      <small>NASA GIBS · Terra MODIS · Suomi NPP VIIRS</small>
+      <small>NASA GIBS · Terra MODIS · Suomi NPP VIIRS · Blue Marble</small>
+      <button id="hub-lang">EN</button>
     </div>
 
     <script type="module" src="/src/main.ts"></script>

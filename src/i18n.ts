@@ -32,6 +32,26 @@ const D: Record<string, { tr: string; en: string }> = {
   start: { tr: "Başla", en: "Start" },
   keys: { tr: "← → kaydırıcı · boşluk: zaman akışı · Esc: kapat", en: "← → swipe · space: time-lapse · Esc: close" },
   reveal: { tr: "fark ortaya çıkıyor…", en: "revealing the change…" },
+
+  // kabuk / hub
+  modeGame: { tr: "Uydunu Kur", en: "Build a Satellite" },
+  modeAtlas: { tr: "Dünya Atlası", en: "Earth Atlas" },
+  hubline: {
+    tr: "Kendi Dünya gözlem uydunu tasarla, fırlat — sonra onun gözüyle gezegenin 25 yıllık değişimini izle. Her görüntü gerçek NASA verisi.",
+    en: "Design and launch your own Earth-observing satellite — then watch 25 years of planetary change through its eye. Every image is real NASA data.",
+  },
+  hubGameT: { tr: "Uydunu Kur", en: "Build a Satellite" },
+  hubGameD: {
+    tr: "Kamera, güneş paneli, anten ve yörünge seç. Güç, veri ve bütçe arasında denge kur, roketi fırlat.",
+    en: "Pick a camera, solar wings, antenna and orbit. Balance power, data and budget, then launch.",
+  },
+  hubGameTag: { tr: "3B · 5 dakika · görev tasarımı", en: "3D · 5 minutes · mission design" },
+  hubAtlasT: { tr: "Dünya Atlası", en: "Earth Atlas" },
+  hubAtlasD: {
+    tr: "İki yıl seç, ekranı ikiye böl, aradaki farkı gör ve km² olarak ölç. Aral Gölü'nden Manavgat'a 9 hikâye.",
+    en: "Pick two years, split the screen, see the difference and measure it in km². Nine stories from the Aral Sea to Manavgat.",
+  },
+  hubAtlasTag: { tr: "NASA GIBS · 2000'den bugüne", en: "NASA GIBS · since 2000" },
   attribution: { tr: "Görüntü: NASA GIBS / Worldview · Terra MODIS, Suomi NPP VIIRS", en: "Imagery: NASA GIBS / Worldview · Terra MODIS, Suomi NPP VIIRS" },
 };
 
