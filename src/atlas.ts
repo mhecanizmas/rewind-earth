@@ -418,7 +418,11 @@ export function setMaxZoom(z: number) {
   if (sm.map.getZoom() > zz) sm.map.setZoom(zz);
 }
 
-export function setEyeBadge(info: { resolutionM: number; score: number; stars: number; maxZoom: number }) {
+type EyeInfo = { resolutionM: number; score: number; stars: number; maxZoom: number };
+let lastEye: EyeInfo | null = null;
+
+export function setEyeBadge(info: EyeInfo) {
+  lastEye = info;
   const tr = getLang() === "tr";
   eyebadge.innerHTML = `
     <b>🛰 ${tr ? "Senin uydun" : "Your satellite"}</b>
@@ -429,6 +433,7 @@ export function setEyeBadge(info: { resolutionM: number; score: number; stars: n
 }
 
 export function clearEyeBadge() {
+  lastEye = null;
   eyebadge.classList.add("hidden");
   sm.map.setMaxZoom(9);
 }
@@ -440,4 +445,5 @@ export function relang() {
   btnPlay.title = t(playing ? "playing" : "play");
   const s = STORIES.find((x) => x.id === S.story);
   if (s && !caption.classList.contains("hidden")) showCaption(s);
+  if (lastEye) setEyeBadge(lastEye);
 }

@@ -278,3 +278,17 @@ body.revealing #handle { animation: handleglow 1.2s ease-in-out infinite; }
   .tl-ticks i b { display: none; }
   .tl-ticks i.major b { display: block; }
 }
+
+/* ---------- dar ekran: atlas üst çubuğu mod çubuğuyla çakışmasın ---------- */
+@media (max-width: 560px) {
+  #brand { display: none; }
+  /* hikâye paneli düğmesi açıklama kutusunun altında kalıyordu: sabit köşeye al */
+  #panel-toggle { position: fixed; top: 52px; left: 10px; z-index: 457; }
+  #badge-l { left: 58px; } /* ☰ düğmesiyle çakışmasın */
+  #panel { bottom: 146px; }
+  #caption { bottom: 146px; padding: 13px 15px; }
+  #caption h2 { font-size: 16px; }
+  #caption p { font-size: 12.5px; }
+  #top-actions button { padding: 6px 10px; }
+  #eyebadge { left: auto; right: 10px; transform: none; top: 52px; padding: 6px 11px; }
+}

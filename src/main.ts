@@ -95,6 +95,7 @@ function toggleLang() {
   setLang(getLang() === "tr" ? "en" : "tr");
   renderLang();
   atlas?.relang();
+  game?.relang();
 }
 $("btn-lang").addEventListener("click", toggleLang);
 $("hub-lang").addEventListener("click", toggleLang);

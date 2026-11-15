@@ -17,9 +17,9 @@
 #hub h1 span { display: block; letter-spacing: 0.42em; font-weight: 300; color: #8ad0ff; }
 #hub > p { margin: 0; color: #9aa6bd; font-size: 15px; max-width: 620px; animation: fadeup 0.9s 0.35s both; }
 #hub > small { color: #5a6680; font-size: 11px; letter-spacing: 0.08em; animation: fadeup 0.9s 1s both; }
-#hub-lang { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #e8eefb; border-radius: 999px; padding: 7px 14px; font-weight: 700; }
+#hub-lang { position: fixed; top: 16px; right: 16px; z-index: 2; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #e8eefb; border-radius: 999px; padding: 7px 14px; font-weight: 700; }
 
-.hub-globe { position: relative; width: 132px; height: 132px; border-radius: 50%; overflow: hidden; animation: fadeup 0.9s both;
+.hub-globe { position: relative; width: 132px; height: 132px; flex: none; border-radius: 50%; overflow: hidden; animation: fadeup 0.9s both;
   background: radial-gradient(circle at 35% 30%, #7fc0ff, #1e5ad6 45%, #0a1f52 76%, #04102b);
   box-shadow: 0 0 64px rgba(90, 163, 255, 0.45), inset -20px -16px 40px rgba(0, 0, 0, 0.62); }
 .hub-globe i { position: absolute; inset: 0; border-radius: 50%; animation: spin 16s linear infinite;
@@ -188,12 +188,45 @@
 @media (max-width: 1240px) { .g-step { font-size: 0; padding: 5px 6px; gap: 0; } .g-step i { font-size: 10px; } }
 
 @media (max-width: 900px) {
+  #hub { justify-content: flex-start; overflow-y: auto; padding: 58px 18px 28px; gap: 13px; }
+  .hub-globe { width: 100px; height: 100px; }
+  #hub > p { font-size: 13.5px; }
+  .hub-card { width: 100%; padding: 16px; }
+  .hc-em { font-size: 28px; }
+  .hub-card b { font-size: 17px; }
   .g-brand span { display: none; }
-  #g-left, #g-right { top: auto; bottom: 78px; width: auto; max-width: none; left: 10px; right: 10px; height: 38vh; }
-  #g-right { bottom: calc(78px + 38vh + 8px); height: 26vh; }
+  #g-left, #g-right { top: auto; bottom: 74px; width: auto; max-width: none; left: 10px; right: 10px; height: 35vh; }
+  #g-right { bottom: calc(74px + 35vh + 6px); height: 21vh; }
+  /* mobilde bütçe panelini sıkıştır ki 3B uyduya yer kalsın */
+  .g-scroll { padding: 9px; }
+  .g-scroll h4 { margin: 8px 0 4px; }
+  .g-bar { margin-bottom: 6px; }
+  .g-bar-h { font-size: 11.5px; }
+  .g-check { padding: 5px 8px; font-size: 11.5px; margin-bottom: 4px; }
+  .g-note { display: none; }
   #game-root[data-phase="orbit"] #g-center { padding-right: 16px; }
   #game-root[data-phase="orbit"] #g-right { display: none; }
   .g-missions { grid-template-columns: 1fr; }
   .g-orbit-stats { grid-template-columns: repeat(2, 1fr); }
   #eyebadge { top: 50px; font-size: 11px; }
+}
+
+@media (max-width: 560px) {
+  /* üst çubukta yer yok: mod düğmeleri simgeye iner, oyun başlığı gizlenir */
+  #switch button span { display: none; }
+  #switch button { padding: 7px 11px; font-size: 14px; }
+  .g-brand { display: none; }
+  #g-steps { display: none; } /* 375 px'de mod çubuğuyla çakışıyor */
+  #g-center { padding: 62px 10px 84px; }
+  .g-card { padding: 16px; border-radius: 15px; }
+  .g-card h2 { font-size: 19px; margin-bottom: 11px; }
+  .g-mission { padding: 11px; }
+  .g-mission .em { font-size: 22px; }
+  .g-mission p { font-size: 11.5px; }
+  /* kart kaydırılırken onay düğmesi hep görünsün */
+  .g-brief .g-go { position: sticky; bottom: -16px; width: 100%; margin: 14px 0 0; }
+  .g-result h2 { font-size: 40px; }
+  .g-stars { font-size: 27px; }
+  .g-rbtns button { flex: 1 1 100%; }
+  .g-orbit h2 { font-size: 32px; }
 }

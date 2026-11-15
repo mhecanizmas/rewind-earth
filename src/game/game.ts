@@ -32,6 +32,8 @@ export interface Game {
   start(): void;
   stop(): void;
   resize(): void;
+  /** Dil değişince bütün oyun arayüzünü yeniden çizer. */
+  relang(): void;
 }
 
 export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) => void): Game {
@@ -40,7 +42,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
     <canvas id="g-canvas"></canvas>
     <div id="g-hud">
       <header id="g-top">
-        <div class="g-brand"><b>GÖREV: UYDUNU KUR</b><span id="g-sub"></span></div>
+        <div class="g-brand"><b id="g-title"></b><span id="g-sub"></span></div>
         <div id="g-steps"></div>
       </header>
       <aside id="g-left"></aside>
@@ -50,6 +52,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
     </div>`;
 
   const canvas = root.querySelector<HTMLCanvasElement>("#g-canvas")!;
+  const elTitle = root.querySelector<HTMLElement>("#g-title")!;
   const elSub = root.querySelector<HTMLElement>("#g-sub")!;
   const elSteps = root.querySelector<HTMLElement>("#g-steps")!;
   const elLeft = root.querySelector<HTMLElement>("#g-left")!;
@@ -142,6 +145,8 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
   let camMode: "earth" | "sat" | "launch" = "earth";
   const camTarget = new THREE.Vector3();
   let wantDist = 30;
+  /** Dar ekranda paneller alt üçte ikiyi kaplar: uydu daha uzaktan ve yukarıda durmalı. */
+  const isMobile = () => window.innerWidth < 900;
 
   rebuildSat();
 
@@ -150,6 +155,8 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
     const satPos = new THREE.Vector3();
     satHolder.getWorldPosition(satPos);
     if (camMode === "sat") {
+      // dar ekranda paneller alt kısmı kaplıyor: uyduyu görünür bölgeye yukarı kaydır
+      if (isMobile()) satPos.addScaledVector(S.camera.up, -8.0);
       camTarget.lerp(satPos, 1 - Math.pow(0.0015, dt));
     } else if (camMode === "launch") {
       camTarget.lerp(rocket.position, 1 - Math.pow(0.0008, dt));
@@ -201,6 +208,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
     { id: "result", tr: "Sonuç", en: "Result" },
   ];
   function renderSteps() {
+    elTitle.textContent = L({ tr: "GÖREV: UYDUNU KUR", en: "MISSION: BUILD A SATELLITE" });
     const i = STEPS.findIndex((s) => s.id === phase);
     elSteps.innerHTML = STEPS.map((s, k) =>
       `<span class="g-step ${k === i ? "on" : k < i ? "done" : ""}"><i>${k + 1}</i>${L(s)}</span>`).join("");
@@ -223,7 +231,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
 
   /* ---------- 1) görev seçimi ---------- */
   function renderBrief() {
-    camMode = "earth"; wantDist = 32; spinSpeed = 0; orbitLine.visible = false;
+    camMode = "earth"; wantDist = isMobile() ? 40 : 32; spinSpeed = 0; orbitLine.visible = false;
     if (sat) sat.group.visible = false;
     elSub.textContent = L({ tr: "NASA verisiyle gerçek bir Dünya gözlem uydusu tasarla", en: "Design a real Earth-observing satellite with NASA data" });
     elCenter.innerHTML = `
@@ -269,7 +277,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
   }
 
   function renderBuild() {
-    camMode = "sat"; wantDist = 14; spinSpeed = 0.025; orbitLine.visible = false;
+    camMode = "sat"; wantDist = isMobile() ? 30 : 14; spinSpeed = 0.025; orbitLine.visible = false;
     satRadius = R_EARTH + 5.5;
     if (sat) sat.group.visible = true;
     deployTarget = 1;
@@ -333,7 +341,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
 
   /* ---------- 3) yörünge ---------- */
   function renderOrbit() {
-    camMode = "earth"; wantDist = 34; spinSpeed = 0.12; orbitLine.visible = true;
+    camMode = "earth"; wantDist = isMobile() ? 42 : 34; spinSpeed = 0.12; orbitLine.visible = true;
     elSub.textContent = L({ tr: "Yörünge yüksekliğini seç", en: "Choose your orbit altitude" });
     const draw = () => {
       const cam = partById(sel.camera);
@@ -418,7 +426,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
         rocket.visible = false;
         if (sat) sat.group.visible = true;
         deploy = 0; deployTarget = 1;
-        camMode = "sat"; wantDist = 14;
+        camMode = "sat"; wantDist = isMobile() ? 30 : 14;
         say({ tr: "Panel açılımı", en: "Array deployment" }, L({ tr: "sinyal alındı", en: "signal acquired" }));
       }, 7100),
       window.setTimeout(() => setPhase("result"), 9600),
@@ -471,7 +479,7 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
       en: "Every budget closes and the targets are met. This design could fly as a real Earth-observing mission.",
     });
 
-    camMode = "sat"; wantDist = 16; spinSpeed = 0.1; orbitLine.visible = true;
+    camMode = "sat"; wantDist = isMobile() ? 30 : 16; spinSpeed = 0.1; orbitLine.visible = true;
     if (sat) sat.setScanVisible(true);
     elSub.textContent = L({ tr: "Görev raporu", en: "Mission report" });
     elCenter.innerHTML = `
@@ -525,5 +533,11 @@ export function createGame(root: HTMLElement, onSeeThroughEye: (r: GameResult) =
       launchTimers = [];
     },
     resize() { S.resize(); },
+    relang() {
+      renderSteps();
+      // fırlatma sırasında yeniden çizmek animasyonu baştan başlatır
+      if (phase === "launch") elSub.textContent = L({ tr: "Fırlatma", en: "Launch" });
+      else setPhase(phase);
+    },
   };
 }
