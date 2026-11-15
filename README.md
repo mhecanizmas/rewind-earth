@@ -21,6 +21,14 @@ gerçek mühendislik ödünleşmeleri yaparak bir görev tasarlar, yönetir ve s
 | **Fırlatma** | — | Yerçekimi dönüşü, kademe ayrımı, yörüngeye giriş, panel açılımı |
 | **Sonuç** | Skor + yıldız + mühendislik notları | Hangi bütçeyi neden kaçırdığın açıklanır |
 
+**Her parça kendini anlatır.** Seçtiğin kart açılır ve iki şey söyler: ⚙ hangi teknoloji
+kullanıldığı (tarayıcı ayna / push-broom / katlanmış Cassegrain…) ve 📐 parçanın neden o
+boyutta olduğu. 3B modeldeki büyüklük farkı uydurma değil, bu gerçek ölçülerden türer:
+yer örnekleme aralığı = piksel × yükseklik ÷ odak uzaklığı, yani 250 m için 0,9 m'lik bir tüp
+yeterken 1 m için ~5 m odak (aynalarla katlanmış 3,2 m tüp) ve kırınım sınırı yüzünden 1,1 m
+ana ayna gerekir. Sağ panelde aracının kanat açıklığı, boyu, teleskop ve ayna çapı metre
+cinsinden yazar; 3B model şematiktir, sayılar gerçektir.
+
 **Oyunun kalbi:** keskin kamera dar bakar. 1 m çözünürlük seçersen ayrıntıyı görürsün ama aynı
 yere 15 günde bir uğrarsın ve ürettiğin verinin dörtte birini indirebilirsin. 250 m seçersen her
 gün bakarsın ama gölün kıyı çizgisi piksellerin arasında kaybolur. Oyun bu gerilimi öğretir.

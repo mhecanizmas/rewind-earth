@@ -22,7 +22,10 @@ function loadTile(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image();
     img.crossOrigin = "anonymous";
-    const done = (v: HTMLImageElement | null) => resolve(v);
+    let settled = false;
+    const done = (v: HTMLImageElement | null) => {
+      if (!settled) { settled = true; resolve(v); }
+    };
     img.onload = () => done(img);
     img.onerror = () => done(null);
     setTimeout(() => done(null), 9000); // ağ takılırsa yoklamayı bekletme
@@ -30,67 +33,89 @@ function loadTile(url: string): Promise<HTMLImageElement | null> {
   });
 }
 
-/** Görünen alandan en çok 4 döşeme indirip veri oranını ölçer. */
+/**
+ * Görünen alanı yoklar. Döşemeler görünen dikdörtgenden taşabildiği için
+ * sayım yalnızca görünen alana düşen piksellerde yapılır — yoksa ekran
+ * kapkara iken komşu bölgelerin aydınlığı sonucu yanıltır.
+ */
 export async function probeCoverage(
   layer: GibsLayer,
   date: string,
   bounds: L.LatLngBounds,
   zoom: number,
+  maxTiles = 6,
 ): Promise<Coverage> {
-  const key = `${layer.id}|${date}|${bounds.getCenter().lat.toFixed(1)},${bounds.getCenter().lng.toFixed(1)}|${Math.round(zoom)}`;
+  const c = bounds.getCenter();
+  const key = `${layer.id}|${date}|${c.lat.toFixed(1)},${c.lng.toFixed(1)}|${Math.round(zoom)}`;
   const hit = cache.get(key);
   if (hit) return hit;
 
   const crs = L.CRS.EPSG3857;
-  const z = Math.max(2, Math.min(Math.round(zoom) - 2, layer.maxZoom, 5));
-  const n = 1 << z;
-  const a = crs.latLngToPoint(bounds.getNorthWest(), z);
-  const b = crs.latLngToPoint(bounds.getSouthEast(), z);
-  const tx0 = Math.floor(a.x / TILE), tx1 = Math.floor((b.x - 1) / TILE);
-  const ty0 = Math.floor(a.y / TILE), ty1 = Math.floor((b.y - 1) / TILE);
-
-  const coords: [number, number][] = [];
-  for (let ty = ty0; ty <= ty1 && coords.length < 4; ty++)
-    for (let tx = tx0; tx <= tx1 && coords.length < 4; tx++)
-      if (ty >= 0 && ty < n) coords.push([((tx % n) + n) % n, ty]);
-  if (coords.length === 0) {
-    const r: Coverage = { dataFraction: 1, ok: true, checked: false };
-    return r;
+  let z = Math.min(Math.round(zoom), layer.maxZoom, 6);
+  const px = () => {
+    const a = crs.latLngToPoint(bounds.getNorthWest(), z);
+    const b = crs.latLngToPoint(bounds.getSouthEast(), z);
+    return { x0: a.x, y0: Math.max(0, a.y), x1: b.x, y1: b.y };
+  };
+  let pb = px();
+  const tiles = () => ({
+    tx0: Math.floor(pb.x0 / TILE), tx1: Math.floor((pb.x1 - 1) / TILE),
+    ty0: Math.floor(pb.y0 / TILE), ty1: Math.floor((pb.y1 - 1) / TILE),
+  });
+  let t = tiles();
+  while ((t.tx1 - t.tx0 + 1) * (t.ty1 - t.ty0 + 1) > maxTiles && z > 2) {
+    z -= 1;
+    pb = px();
+    t = tiles();
   }
+  const n = 1 << z;
+
+  const jobs: [number, number][] = [];
+  for (let ty = t.ty0; ty <= t.ty1; ty++)
+    for (let tx = t.tx0; tx <= t.tx1; tx++)
+      if (ty >= 0 && ty < n) jobs.push([tx, ty]);
+  if (jobs.length === 0) return { dataFraction: 1, ok: true, checked: false };
 
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = TILE;
   const ctx = canvas.getContext("2d", { willReadFrequently: true })!;
   let data = 0, total = 0, failed = 0;
 
-  const imgs = await Promise.all(coords.map(([x, y]) => loadTile(tileUrlXYZ(layer, date, z, x, y))));
-  for (const img of imgs) {
+  const imgs = await Promise.all(jobs.map(([tx, ty]) => loadTile(tileUrlXYZ(layer, date, z, ((tx % n) + n) % n, ty))));
+
+  for (let k = 0; k < jobs.length; k++) {
+    const img = imgs[k];
     if (!img) { failed++; continue; }
+    const [tx, ty] = jobs[k];
     ctx.clearRect(0, 0, TILE, TILE);
     ctx.drawImage(img, 0, 0);
-    const px = ctx.getImageData(0, 0, TILE, TILE).data;
-    for (let i = 0; i < px.length; i += 16) {
-      // her 4. pikseli örnekle: yoklama hızlı olmalı
-      total++;
-      if (px[i + 3] > 10 && px[i] + px[i + 1] + px[i + 2] > 26) data++;
+    const buf = ctx.getImageData(0, 0, TILE, TILE).data;
+    const ox = tx * TILE, oy = ty * TILE;
+    // yalnızca görünen dikdörtgene düşen pikseller
+    const rowStart = Math.max(0, Math.floor(pb.y0 - oy)), rowEnd = Math.min(TILE, Math.ceil(pb.y1 - oy));
+    const colStart = Math.max(0, Math.floor(pb.x0 - ox)), colEnd = Math.min(TILE, Math.ceil(pb.x1 - ox));
+    for (let y = rowStart; y < rowEnd; y += 2) {
+      for (let x = colStart; x < colEnd; x += 2) {
+        const i = (y * TILE + x) * 4;
+        total++;
+        if (buf[i + 3] > 10 && buf[i] + buf[i + 1] + buf[i + 2] > 26) data++;
+      }
     }
   }
 
   // hiçbir döşeme inmediyse bu bir ağ sorunu olabilir; kullanıcıyı yanlış uyarma
-  if (failed === imgs.length) {
-    const r: Coverage = { dataFraction: 1, ok: true, checked: false };
-    return r;
-  }
+  if (failed === imgs.length || total === 0) return { dataFraction: 1, ok: true, checked: false };
 
-  const dataFraction = total ? data / total : 1;
+  const dataFraction = data / total;
   const res: Coverage = { dataFraction, ok: dataFraction >= THRESHOLD, checked: true };
   cache.set(key, res);
   return res;
 }
 
 /**
- * Verilen günde kayıt yoksa ±1, ±2 … gün arayıp görüntüsü olan en yakın günü bulur.
- * Bulamazsa null döner.
+ * Görüntüsü olan en yakın günü arar: önce gün gün (±8), bulamazsa mevsim
+ * ölçeğinde (15 günlük adımlarla ±150). Kutup gecesinde haftalarca kayıt
+ * olmadığı için geniş arama şart.
  */
 export async function findNearestWithData(
   layer: GibsLayer,
@@ -99,13 +124,16 @@ export async function findNearestWithData(
   zoom: number,
   step: (iso: string, days: number) => string,
   clamp: (iso: string) => string,
-  maxDays = 8,
 ): Promise<string | null> {
-  for (let d = 1; d <= maxDays; d++) {
+  const offsets: number[] = [];
+  for (let d = 1; d <= 8; d++) offsets.push(d);
+  for (let d = 15; d <= 150; d += 15) offsets.push(d);
+
+  for (const d of offsets) {
     for (const sign of [-1, 1]) {
       const cand = clamp(step(date, d * sign));
       if (cand === date) continue;
-      const c = await probeCoverage(layer, cand, bounds, zoom);
+      const c = await probeCoverage(layer, cand, bounds, zoom, 4);
       if (c.ok) return cand;
     }
   }

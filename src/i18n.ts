@@ -42,7 +42,7 @@ const D: Record<string, { tr: string; en: string }> = {
   nodataCover: { tr: "kaplama", en: "covered" },
   nodataJump: { tr: "En yakın kayıtlı güne atla", en: "Jump to nearest day with data" },
   nodataSearching: { tr: "aranıyor…", en: "searching…" },
-  nodataNone: { tr: "8 gün içinde kayıt yok", en: "nothing within 8 days" },
+  nodataNone: { tr: "Aylardır kayıt yok (kutup gecesi)", en: "No imagery for months (polar night)" },
   nodataJumped: { tr: "Kayıt bulunan güne geçildi", en: "Moved to a day with imagery" },
 
   // kabuk / hub
